@@ -1,6 +1,6 @@
-from src.utils.llm import chat_completion
+from .base_agent import BaseAgent
 
-SYSTEM= """
+SYSTEM_PROMPT = """
 ROLE:
 You are the Tester Agent, expert in QA and automated testing.
 
@@ -33,14 +33,23 @@ OUTPUT:
 """
 
 
-class TesterAgent:
-    def run(self, context):
+class TesterAgent(BaseAgent):
+    def __init__(self, model_name: str = "llama3"):
+        super().__init__("tester", SYSTEM_PROMPT, model_name)
+
+    def run(self, context: dict) -> dict:
+        self.logger.info("Running Tester Agent...")
         code = context.get("code", "")
+
         messages = [
             {
                 "role": "user",
                 "content": f"Here is the codebase:\n{code}\n\nGenerate realistic Python pytest-based tests for this service."
             }
         ]
-        out = chat_completion(SYSTEM, messages)
-        return {"tests": out}
+
+        raw_output = self._chat_completion(messages)
+        parsed_output = self._parse_json(raw_output)
+
+        self.logger.info("Tester Agent finished.")
+        return {"tests": parsed_output}

@@ -1,6 +1,6 @@
-from ..utils.llm import chat_completion
+from .base_agent import BaseAgent
 
-SYSTEM= """
+SYSTEM_PROMPT = """
 ROLE:
 You are the Requirement Agent, expert in software requirement analysis.
 
@@ -53,14 +53,17 @@ OUTPUT:
 """
 
 
-
-
-class RequirementAgent:
-    def __init__(self):
-        pass
+class RequirementAgent(BaseAgent):
+    def __init__(self, model_name: str = "llama3"):
+        super().__init__("requirement", SYSTEM_PROMPT, model_name)
 
     def run(self, context: dict) -> dict:
+        self.logger.info("Running Requirement Agent...")
         user_prompt = context.get("project_description", "Create a minimal SDLC AI pipeline")
-        messages = [{"role":"user","content": user_prompt}]
-        out = chat_completion(SYSTEM, messages)
-        return {"requirements": out}
+        messages = [{"role": "user", "content": user_prompt}]
+
+        raw_output = self._chat_completion(messages)
+        parsed_output = self._parse_json(raw_output)
+
+        self.logger.info("Requirement Agent finished.")
+        return {"requirements": parsed_output}

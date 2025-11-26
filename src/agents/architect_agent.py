@@ -1,6 +1,7 @@
-from src.utils.llm import chat_completion
+import json
+from .base_agent import BaseAgent
 
-SYSTEM= """
+SYSTEM_PROMPT = """
 ROLE:
 You are the Architect Agent, expert in creating technical software architecture.
 
@@ -48,14 +49,26 @@ OUTPUT:
 """
 
 
-class ArchitectAgent:
-    def run(self, context):
-        req = context.get("requirements", "")
+class ArchitectAgent(BaseAgent):
+    def __init__(self, model_name: str = "llama3"):
+        super().__init__("architect", SYSTEM_PROMPT, model_name)
+
+    def run(self, context: dict) -> dict:
+        self.logger.info("Running Architect Agent...")
+        requirements = context.get("requirements", {})
+
+        # Ensure requirements are in a string format for the prompt
+        requirements_str = json.dumps(requirements, indent=2)
+
         messages = [
             {
                 "role": "user",
-                "content": f"Here are the requirements:\n{req}\n\nGenerate a realistic architecture."
+                "content": f"Here are the requirements:\n{requirements_str}\n\nGenerate a realistic architecture."
             }
         ]
-        out = chat_completion(SYSTEM, messages)
-        return {"architecture": out}
+
+        raw_output = self._chat_completion(messages)
+        parsed_output = self._parse_json(raw_output)
+
+        self.logger.info("Architect Agent finished.")
+        return {"architecture": parsed_output}
