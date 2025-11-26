@@ -19,4 +19,4 @@
 ## Run
 python -m src.main --desc "Build me a python microservice that responds to health checks"
 
-Outputs will be saved to `src/outputs/`
+Outputs will be saved to `src/outputs/` in their respective files (e.g. `requirements.json`, `main.py`, etc.). A full log of the pipeline can be found in `src/outputs/logs/pipeline.log`.

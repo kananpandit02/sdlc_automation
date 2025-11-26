@@ -11,7 +11,7 @@ class LLMError(Exception):
     pass
 
 
-def chat_completion(system_prompt: str, messages: List[Dict[str, str]]) -> str:
+def chat_completion(system_prompt: str, messages: List[Dict[str, str]], model_name: str = None) -> str:
     """
     Local Ollama LLM wrapper.
 
@@ -28,8 +28,9 @@ def chat_completion(system_prompt: str, messages: List[Dict[str, str]]) -> str:
         content = m.get("content", "").strip()
         prompt += f"{role}:\n{content}\n\n"
 
+    model = model_name or MODEL_NAME
     payload = {
-        "model": MODEL_NAME,
+        "model": model,
         "prompt": prompt,
         "max_tokens": 4096,     # MORE REALISTIC LONG OUTPUT
         "temperature": 0.3,     # SLIGHT VARIATION, MORE HUMAN

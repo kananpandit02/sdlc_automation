@@ -1,6 +1,6 @@
-from src.utils.llm import chat_completion
+from .base_agent import BaseAgent
 
-SYSTEM= """
+SYSTEM_PROMPT = """
 ROLE:
 You are the DevOps Agent, expert in CI/CD and infrastructure automation.
 
@@ -30,14 +30,23 @@ OUTPUT:
 """
 
 
-class DevOpsAgent:
-    def run(self, context):
+class DevOpsAgent(BaseAgent):
+    def __init__(self, model_name: str = "llama3"):
+        super().__init__("devops", SYSTEM_PROMPT, model_name)
+
+    def run(self, context: dict) -> dict:
+        self.logger.info("Running DevOps Agent...")
         code = context.get("code", "")
+
         messages = [
             {
                 "role": "user",
                 "content": f"Generate DevOps deployment setup for this FastAPI code:\n{code}"
             }
         ]
-        out = chat_completion(SYSTEM, messages)
-        return {"devops": out}
+
+        raw_output = self._chat_completion(messages)
+        parsed_output = self._parse_json(raw_output)
+
+        self.logger.info("DevOps Agent finished.")
+        return {"devops": parsed_output}

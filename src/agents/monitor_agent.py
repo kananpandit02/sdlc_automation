@@ -1,6 +1,7 @@
-from src.utils.llm import chat_completion
+import json
+from .base_agent import BaseAgent
 
-SYSTEM= """
+SYSTEM_PROMPT = """
 ROLE:
 You are the Monitor Agent.
 
@@ -31,14 +32,26 @@ OUTPUT:
 }
 """
 
-class MonitorAgent:
-    def run(self, context):
-        architecture = context.get("architecture", "")
+
+class MonitorAgent(BaseAgent):
+    def __init__(self, model_name: str = "llama3"):
+        super().__init__("monitor", SYSTEM_PROMPT, model_name)
+
+    def run(self, context: dict) -> dict:
+        self.logger.info("Running Monitor Agent...")
+        architecture = context.get("architecture", {})
+
+        architecture_str = json.dumps(architecture, indent=2)
+
         messages = [
             {
                 "role": "user",
-                "content": f"Based on the architecture below, generate generalized monitoring documentation:\n\n{architecture}"
+                "content": f"Based on the architecture below, generate generalized monitoring documentation:\n\n{architecture_str}"
             }
         ]
-        out = chat_completion(SYSTEM, messages)
-        return {"monitor": out}
+
+        raw_output = self._chat_completion(messages)
+        parsed_output = self._parse_json(raw_output)
+
+        self.logger.info("Monitor Agent finished.")
+        return {"monitor": parsed_output}

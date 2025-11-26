@@ -1,0 +1,49 @@
+name: Run SDLC AI Pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      project_description:
+        description: 'The project description for the AI pipeline'
+        required: true
+        default: 'Create a FastAPI app with a /health endpoint'
+
+jobs:
+  build-and-run:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Install and run Ollama
+      run: |
+        curl -fsSL https://ollama.com/install.sh | sh
+        ollama serve &
+        # Give Ollama some time to start up
+        sleep 5
+
+    - name: Pull Ollama models
+      run: |
+        ollama pull llama3
+        ollama pull codellama
+
+    - name: Run the SDLC AI pipeline
+      run: |
+        python -m src.main --desc "${{ github.event.inputs.project_description }}"
+
+    - name: Upload output artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: sdlc-ai-outputs
+        path: src/outputs/
